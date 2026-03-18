@@ -75,6 +75,7 @@ class TransactionController extends Controller
             Mail::to("karchung0930@pm.me")->send(new TransactionCreatedMail($user, $transaction, $category));
         } catch (\Exception $e) {
             Log::info('Transaction created', [
+                'error'           => $e->getMessage(),
                 'user'            => $user->name,
                 'email'           => $user->email,
                 'category'        => $category->name,
