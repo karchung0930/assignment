@@ -13,7 +13,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/members/list-spending', [MemberSpendingController::class, 'index']);
-    Route::get('/transaction', [TransactionController::class, 'create']);
-    Route::post('/transaction/create', [TransactionController::class, 'store']);
+    Route::get('/members/list-spending', [MemberSpendingController::class, 'index'])->can('view-spending');;
+    Route::get('/transaction', [TransactionController::class, 'create'])->can('create-transaction');;
+    Route::post('/transaction/create', [TransactionController::class, 'store'])->can('create-transaction');;
 });
