@@ -96,8 +96,10 @@ class TransactionController extends Controller
     private function notifyUser($user, $transaction, $category): void
     {
         try {
-//            Mail::to($user->email)->send(new TransactionCreatedMail($user, $transaction, $category));
-            Mail::to("karchung0930@pm.me")->send(new TransactionCreatedMail($user, $transaction, $category));
+            // Prevent cold connection rejection. (Rate limiting, IP warming, Idle timeout)
+            Mail::to("karchung0930@pm.me")->later(now()->addSeconds(5), new TransactionCreatedMail($user, $transaction, $category));
+
+            // Mail::to($user->email)->later(now()->addSeconds(5), new TransactionCreatedMail($user, $transaction, $category));
         } catch (Exception $e) {
             Log::error('Failed to send transaction email', [
                 'error'           => $e->getMessage(),
