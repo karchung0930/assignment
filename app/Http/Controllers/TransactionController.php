@@ -6,8 +6,11 @@ use App\Mail\TransactionCreatedMail;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\TransactionStatus;
+use App\Models\Wallet;
+use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
@@ -34,34 +37,55 @@ class TransactionController extends Controller
         $user     = auth()->user()->load(['wallet', 'corporate']);
         $category = Category::findOrFail($request->category);
 
-        $cost   = (float)$request->cost;
-        $fee    = $category->calculateFee($cost);
-        $total  = $cost + $fee;
-        $wallet = $user->wallet;
+        $cost  = (float)$request->cost;
+        $fee   = $category->calculateFee($cost);
+        $total = $cost + $fee;
 
-        if ($wallet->amount < $total) {
-            $shortfall = $total - $wallet->amount;
+        $transaction = null;
+        $shortfall   = null;
+
+        try {
+            DB::transaction(function () use ($user, $category, $cost, $fee, $total, &$transaction, &$shortfall) {
+
+                $wallet = Wallet::where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($wallet->amount < $total) {
+                    $shortfall = $total - $wallet->amount;
+
+                    return;
+                }
+
+                $wallet->decrement('amount', $total);
+
+                $status = TransactionStatus::where('name', 'Completed')->first();
+
+                $transaction = Transaction::create([
+                    'corporate_id'          => $user->corporate_id,
+                    'user_id'               => $user->id,
+                    'category_id'           => $category->id,
+                    'transaction_status_id' => $status->id,
+                    'cost'                  => $cost,
+                    'transaction_fee'       => $fee,
+                    'currency'              => $wallet->currency,
+                ]);
+            });
+        } catch (Exception) {
+            return back()
+                ->withInput()
+                ->withErrors(['cost' => 'Transaction failed, please try again.']);
+        }
+
+        if ($shortfall !== null) {
+            $currency = $user->wallet->currency;
 
             return back()
                 ->withInput()
                 ->withErrors([
-                    'cost' => "Insufficient balance. You need additional {$wallet->currency} " . number_format($shortfall, 2)
+                    'cost' => "Insufficient balance. You need additional $currency " . number_format($shortfall, 2)
                 ]);
         }
-
-        $wallet->decrement('amount', $total);
-
-        $status = TransactionStatus::where('name', 'Completed')->first();
-
-        $transaction = Transaction::create([
-            'corporate_id'          => $user->corporate_id,
-            'user_id'               => $user->id,
-            'category_id'           => $category->id,
-            'transaction_status_id' => $status->id,
-            'cost'                  => $cost,
-            'transaction_fee'       => $fee,
-            'currency'              => $wallet->currency,
-        ]);
 
         $this->notifyUser($user, $transaction, $category);
 
@@ -73,7 +97,7 @@ class TransactionController extends Controller
     {
         try {
             Mail::to("karchung0930@pm.me")->send(new TransactionCreatedMail($user, $transaction, $category));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::info('Transaction created', [
                 'error'           => $e->getMessage(),
                 'user'            => $user->name,
