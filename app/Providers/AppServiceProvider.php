@@ -23,5 +23,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define('view-spending', fn(User $user) => $user->isHR());
         Gate::define('create-transaction', fn(User $user) => $user->isMember());
+
+//        Gate::define('view-spending', fn(User $user) => $user->hasRole('HR'));
+//        Gate::define('create-transaction', fn(User $user) => $user->hasRole('Member'));
+//        Gate::define('manage-users', fn(User $user) => $user->hasRole('Admin'));
     }
 }

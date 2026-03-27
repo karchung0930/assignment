@@ -67,4 +67,9 @@ class User extends Authenticatable
     {
         return $this->role->name === 'HR';
     }
+
+//    public function hasRole(string $role): bool
+//    {
+//        return $this->role->name === $role;
+//    }
 }

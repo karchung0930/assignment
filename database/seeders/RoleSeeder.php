@@ -15,5 +15,11 @@ class RoleSeeder extends Seeder
         collect(['Member', 'HR'])->each(
             fn($role) => Role::create(['name' => $role])
         );
+
+        // php artisan db:seed --class=RoleSeeder
+
+        // Role::firstOrCreate(['name' => 'Member']);
+        // Role::firstOrCreate(['name' => 'HR']);
+        // Role::firstOrCreate(['name' => 'Admin']);
     }
 }
