@@ -39,7 +39,7 @@
 
 @layer components {
     .card {
-        @apply bg-white shadow-sm rounded-md;
+        @apply bg-white shadow-sm rounded-xl;
     }
 
     .btn-cta {

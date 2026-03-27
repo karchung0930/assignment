@@ -4,5 +4,5 @@
         alt="Logo"
         class="w-9"
     >
-    <p class="font-semibold text-3xl">LOGO</p>
+    <p class="font-semibold text-3xl select-none">LOGO</p>
 </div>

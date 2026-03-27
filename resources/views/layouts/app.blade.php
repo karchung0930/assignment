@@ -21,9 +21,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
-    <main class="bg-blue-50 h-screen p-3">
+    <main class="bg-blue-50 h-screen p-6">
         @auth
-            <header class="card flex justify-between items-center shadow-sm mb-3 p-3">
+            <header class="card flex justify-between items-center shadow-sm mb-6 p-3">
                 <x-logo/>
                 <div class="flex gap-x-6 items-center">
                     <div class="flex gap-x-1.5 items-center">
